@@ -15,16 +15,24 @@ paper链接：
 delay cue: 在单agent RL 学习中，目前已有多项研究提出一个设计简单但是可受人工管控的任务，例如such as Passive T-Maze [1] and POPGym [2].
 其基本流程是agent一开始看到一个关键信息 cue → 中间经过一段没有 cue 的过程 → 最后必须根据最开始的信息做选择。单agent上，上面的相关研究主要研究的是学习的策略是否能够记住提供的这个关键的历史提示
 但是在MARL我们的本研究中，关心的是：What does a MARL agent represent, preserve, and use?
-\[
-o_0^i
-\rightarrow
-h_t^i
-\rightarrow
-a_t^i
-\rightarrow
-\text{joint behaviour}.
-\]
+<img width="477" height="48" alt="image" src="https://github.com/user-attachments/assets/32712638-fb58-41a9-8507-3f90092e6d07" />
+
 对其在MARL上进行扩展
+t = 0    Agent 0: cue
+         Agent 1: cue
+              ↓
+      delay + distractors
+              ↓
+hidden representations h_t^1, h_t^2
+              ↓
+        joint decision
+              ↓
+t = 0+d  team reward
+其中d是dalay的时间长度
+
+我们首先没有直接从 SMAC 开始，因为在复杂任务中，一旦性能下降，很难判断究竟是 exploration、credit assignment、coordination 还是 representation 本身的问题。因此我们先构造一个非常简单的 two-agent delayed-cue diagnostic task。  
+在 episode 开始时，两个 agent 同时看到一个随机的 binary cue。这个 cue 随后消失，agent 经过若干带 distractor 的 delay steps，而且 delay 期间只能执行 wait action，避免通过 action history 携带 cue。最后两个 agent 必须根据最初看到的信息做联合决策；只有 joint action 正确才得到 team reward。  
+这样我们知道理论上唯一需要保存的 task-relevant variable 就是 cue，因此可以沿时间直接 probe hidden representation，检查 cue 信息何时进入、能保持多久，以及最终是否真的被 policy 使用。之后再通过 neuron masking、perturbation 等 intervention 区分“representation 中能解码出来的信息”和“真正对行为有因果作用的信息”。最后再看这些规律是否能在 SMAC/SMACv2 中复现。
 
 ## 实验流程
 
